@@ -1,6 +1,9 @@
 import { useState, type ChangeEvent } from 'react'
 import { PDFDocument, degrees } from 'pdf-lib'
 import * as pdfjsLib from 'pdfjs-dist'
+import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString()
 
@@ -13,6 +16,17 @@ type PageItem = {
   previewUrl: string
   encrypted: boolean
   password?: string
+}
+
+function SortablePageRow({ page, index, onRotate }: { page: PageItem; index: number; onRotate: (id: string) => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: page.id })
+  const style = { transform: CSS.Transform.toString(transform), transition }
+
+  return <div className={`selection-row ${isDragging ? 'dragging' : ''}`} ref={setNodeRef} style={style}>
+    <button className="drag-handle" type="button" title="드래그해서 순서 변경" aria-label="드래그해서 순서 변경" {...attributes} {...listeners}><span>⠿</span></button>
+    <span className="order">{String(index + 1).padStart(2, '0')}</span><span className="row-name">{page.fileName} · p.{page.pageNumber}</span>
+    <button title="페이지 90도 회전" onClick={() => onRotate(page.id)}>↻</button>
+  </div>
 }
 
 const languages = ['한국어', 'English', '日本語', '简体中文', '繁體中文']
@@ -49,7 +63,6 @@ function App() {
   const [summary, setSummary] = useState('')
   const [resultUrl, setResultUrl] = useState('')
   const [pageQuery, setPageQuery] = useState('')
-  const [draggedId, setDraggedId] = useState('')
   const [notice, setNotice] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [aiConsent, setAiConsent] = useState(false)
@@ -152,18 +165,18 @@ function App() {
     setPageQuery('')
   }
 
-  function dropPage(targetId: string) {
-    if (!draggedId || draggedId === targetId) return
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
     setSelectedIds((current) => {
-      const sourceIndex = current.indexOf(draggedId)
-      const targetIndex = current.indexOf(targetId)
+      const sourceIndex = current.indexOf(String(active.id))
+      const targetIndex = current.indexOf(String(over.id))
       if (sourceIndex < 0 || targetIndex < 0) return current
       const reordered = [...current]
-      reordered.splice(sourceIndex, 1)
-      reordered.splice(targetIndex, 0, draggedId)
+      const [moved] = reordered.splice(sourceIndex, 1)
+      reordered.splice(targetIndex, 0, moved)
       return reordered
     })
-    setDraggedId('')
   }
 
   function rotatePage(id: string) {
@@ -311,12 +324,9 @@ function App() {
 
         <div className="selection-panel">
           <div className="section-heading"><span className="step">03</span><h2>{copy.order}</h2></div>
-          {!selectedPages.length ? <div className="empty-state compact">{copy.emptySelection}</div> : <div className="selection-list">
-            {selectedPages.map((page, index) => <div className="selection-row" key={page.id} draggable onDragStart={() => setDraggedId(page.id)} onDragOver={(event) => event.preventDefault()} onDrop={() => dropPage(page.id)} onDragEnd={() => setDraggedId('')}>
-              <span className="drag-handle" title="드래그해서 순서 변경" aria-label="드래그해서 순서 변경">⠿</span><span className="order">{String(index + 1).padStart(2, '0')}</span><span className="row-name">{page.fileName} · p.{page.pageNumber}</span>
-              <button title="페이지 90도 회전" onClick={() => rotatePage(page.id)}>↻</button>
-            </div>)}
-          </div>}
+          {!selectedPages.length ? <div className="empty-state compact">{copy.emptySelection}</div> : <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}><SortableContext items={selectedPages.map((page) => page.id)} strategy={verticalListSortingStrategy}><div className="selection-list">
+            {selectedPages.map((page, index) => <SortablePageRow key={page.id} page={page} index={index} onRotate={rotatePage} />)}
+          </div></SortableContext></DndContext>}
         </div>
       </section>
 
