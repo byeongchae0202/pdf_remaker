@@ -56,7 +56,7 @@ function App() {
   const [passwordFile, setPasswordFile] = useState<File | null>(null)
   const [password, setPassword] = useState('')
 
-  const selectedPages = pages.filter((page) => selectedIds.includes(page.id))
+  const selectedPages = selectedIds.map((id) => pages.find((page) => page.id === id)).filter((page): page is PageItem => Boolean(page))
   const copy = translations[language as keyof typeof translations]
 
   async function handleFiles(event: ChangeEvent<HTMLInputElement>) {
@@ -140,17 +140,6 @@ function App() {
 
   function togglePage(id: string) {
     setSelectedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id])
-  }
-
-  function movePage(id: string, direction: -1 | 1) {
-    setSelectedIds((current) => {
-      const index = current.indexOf(id)
-      const next = index + direction
-      if (index < 0 || next < 0 || next >= current.length) return current
-      const reordered = [...current]
-      ;[reordered[index], reordered[next]] = [reordered[next], reordered[index]]
-      return reordered
-    })
   }
 
   function selectPageNumbers() {
@@ -323,9 +312,9 @@ function App() {
         <div className="selection-panel">
           <div className="section-heading"><span className="step">03</span><h2>{copy.order}</h2></div>
           {!selectedPages.length ? <div className="empty-state compact">{copy.emptySelection}</div> : <div className="selection-list">
-            {selectedPages.map((page, index) => <div className="selection-row" key={page.id} draggable onDragStart={() => setDraggedId(page.id)} onDragOver={(event) => event.preventDefault()} onDrop={() => dropPage(page.id)}>
+            {selectedPages.map((page, index) => <div className="selection-row" key={page.id} draggable onDragStart={() => setDraggedId(page.id)} onDragOver={(event) => event.preventDefault()} onDrop={() => dropPage(page.id)} onDragEnd={() => setDraggedId('')}>
               <span className="drag-handle" title="드래그해서 순서 변경" aria-label="드래그해서 순서 변경">⠿</span><span className="order">{String(index + 1).padStart(2, '0')}</span><span className="row-name">{page.fileName} · p.{page.pageNumber}</span>
-              <button title="Move left" onClick={() => movePage(page.id, -1)}>←</button><button title="Move right" onClick={() => movePage(page.id, 1)}>→</button><button title="Rotate page" onClick={() => rotatePage(page.id)}>↻</button>
+              <button title="페이지 90도 회전" onClick={() => rotatePage(page.id)}>↻</button>
             </div>)}
           </div>}
         </div>
