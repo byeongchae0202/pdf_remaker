@@ -15,12 +15,21 @@ type PageItem = {
   password?: string
 }
 
-const languages = ['한국어', 'English', '日本語', '简体中文']
+const languages = ['한국어', 'English', '日本語', '简体中文', '繁體中文']
 const translations = {
-  한국어: { upload: 'PDF를 올려주세요', select: '페이지를 선택하세요', order: '순서를 다듬으세요', summary: 'AI 요약', optional: '선택사항', create: 'PDF 만들기', selected: 'selected', emptyPages: '업로드한 PDF의 페이지가 여기에 표시됩니다.', emptySelection: '선택한 페이지가 이곳에 순서대로 쌓입니다.', choose: '선택', summaryRequest: '요약 요청 ↗', preview: '완성된 PDF 미리보기', download: '다운로드 ↗', language: '화면 언어', intro: '여러 PDF를 한곳에 올리고, 페이지를 골라 나만의 한 파일로 다시 엮어보세요.', summaryModes: ['통합 요약', 'PDF별 요약', '페이지별 요약'] },
-  English: { upload: 'Upload your PDFs', select: 'Select your pages', order: 'Arrange your selection', summary: 'AI summary', optional: 'Optional', create: 'Create PDF', selected: 'selected', emptyPages: 'Pages from your uploaded PDFs will appear here.', emptySelection: 'Selected pages will stack here in order.', choose: 'Select', summaryRequest: 'Request summary ↗', preview: 'Finished PDF preview', download: 'Download ↗', language: 'Display language', intro: 'Bring your PDFs together, choose the pages you need, and make one file in your own order.', summaryModes: ['Combined summary', 'Summary by PDF', 'Summary by page'] },
-  日本語: { upload: 'PDFをアップロード', select: 'ページを選択', order: '順番を整える', summary: 'AI要約', optional: '任意', create: 'PDFを作成', selected: 'selected', emptyPages: 'アップロードしたPDFのページがここに表示されます。', emptySelection: '選択したページが順番に表示されます。', choose: '選択', summaryRequest: '要約を依頼 ↗', preview: '完成したPDFのプレビュー', download: 'ダウンロード ↗', language: '表示言語', intro: 'PDFをまとめ、必要なページを選び、好きな順番で一つのファイルにします。', summaryModes: ['統合要約', 'PDF別要約', 'ページ別要約'] },
-  简体中文: { upload: '上传 PDF', select: '选择页面', order: '调整顺序', summary: 'AI 摘要', optional: '可选', create: '创建 PDF', selected: 'selected', emptyPages: '上传的 PDF 页面会显示在这里。', emptySelection: '选中的页面会按顺序显示在这里。', choose: '选择', summaryRequest: '请求摘要 ↗', preview: '生成的 PDF 预览', download: '下载 ↗', language: '界面语言', intro: '上传 PDF，选择需要的页面，并按自己的顺序合并为一个文件。', summaryModes: ['综合摘要', '按 PDF 摘要', '按页面摘要'] },
+  한국어: { upload: 'PDF를 올려주세요', select: '페이지를 선택하세요', order: '순서를 다듬으세요', summary: 'AI 요약', optional: '선택사항', create: 'PDF 만들기', selected: '선택됨', emptyPages: '업로드한 PDF의 페이지가 여기에 표시됩니다.', emptySelection: '선택한 페이지가 이곳에 순서대로 쌓입니다.', choose: '선택', summaryRequest: '요약 요청 ↗', preview: '완성된 PDF 미리보기', download: '다운로드 ↗', language: '화면 언어', intro: '여러 PDF를 한곳에 올리고, 페이지를 골라 나만의 한 파일로 다시 엮어보세요.', summaryModes: ['통합 요약', 'PDF별 요약', '페이지별 요약'], uploadHint: '여러 파일을 한 번에 선택할 수 있어요', pagePlaceholder: '예: 1-3, 7', selectedPages: '선택한 페이지', pages: '페이지', creating: '생성 중...', privacy: 'AI 요약과 OCR을 사용하면 문서가 Azure AI로 임시 전송됩니다. 데이터 처리에 동의합니다.', encryptedTitle: '파일 비밀번호', encryptedHint: '페이지를 확인하려면 비밀번호가 필요합니다.', cancel: '취소', confirm: '확인', dragHint: 'PDF 파일을 드래그하거나 클릭' },
+  English: { upload: 'Upload your PDFs', select: 'Select your pages', order: 'Arrange your selection', summary: 'AI summary', optional: 'Optional', create: 'Create PDF', selected: 'selected', emptyPages: 'Pages from your uploaded PDFs will appear here.', emptySelection: 'Selected pages will stack here in order.', choose: 'Select', summaryRequest: 'Request summary ↗', preview: 'Finished PDF preview', download: 'Download ↗', language: 'Display language', intro: 'Bring your PDFs together, choose the pages you need, and make one file in your own order.', summaryModes: ['Combined summary', 'Summary by PDF', 'Summary by page'], uploadHint: 'Choose multiple files at once', pagePlaceholder: 'e.g. 1-3, 7', selectedPages: 'Selected pages', pages: 'pages', creating: 'Creating...', privacy: 'Using AI summary and OCR temporarily sends your document to Azure AI. I consent to data processing.', encryptedTitle: 'File password', encryptedHint: 'A password is required to view these pages.', cancel: 'Cancel', confirm: 'Confirm', dragHint: 'Drag or click to add PDF files' },
+  日本語: { upload: 'PDFをアップロード', select: 'ページを選択', order: '順番を整える', summary: 'AI要約', optional: '任意', create: 'PDFを作成', selected: '選択済み', emptyPages: 'アップロードしたPDFのページがここに表示されます。', emptySelection: '選択したページが順番に表示されます。', choose: '選択', summaryRequest: '要約を依頼 ↗', preview: '完成したPDFのプレビュー', download: 'ダウンロード ↗', language: '表示言語', intro: 'PDFをまとめ、必要なページを選び、好きな順番で一つのファイルにします。', summaryModes: ['統合要約', 'PDF別要約', 'ページ別要約'], uploadHint: '複数のファイルを一度に選択できます', pagePlaceholder: '例: 1-3, 7', selectedPages: '選択したページ', pages: 'ページ', creating: '作成中...', privacy: 'AI要約とOCRでは文書がAzure AIに一時送信されます。データ処理に同意します。', encryptedTitle: 'ファイルのパスワード', encryptedHint: 'ページを表示するにはパスワードが必要です。', cancel: 'キャンセル', confirm: '確認', dragHint: 'PDFをドラッグまたはクリック' },
+  简体中文: { upload: '上传 PDF', select: '选择页面', order: '调整顺序', summary: 'AI 摘要', optional: '可选', create: '创建 PDF', selected: '已选择', emptyPages: '上传的 PDF 页面会显示在这里。', emptySelection: '选中的页面会按顺序显示在这里。', choose: '选择', summaryRequest: '请求摘要 ↗', preview: '生成的 PDF 预览', download: '下载 ↗', language: '界面语言', intro: '上传 PDF，选择需要的页面，并按自己的顺序合并为一个文件。', summaryModes: ['综合摘要', '按 PDF 摘要', '按页面摘要'], uploadHint: '可以一次选择多个文件', pagePlaceholder: '例如：1-3, 7', selectedPages: '已选页面', pages: '页', creating: '创建中...', privacy: '使用 AI 摘要和 OCR 时，文档会临时发送到 Azure AI。我同意数据处理。', encryptedTitle: '文件密码', encryptedHint: '查看页面需要输入密码。', cancel: '取消', confirm: '确认', dragHint: '拖动或点击以添加 PDF' },
+  繁體中文: { upload: '上傳 PDF', select: '選擇頁面', order: '調整順序', summary: 'AI 摘要', optional: '選用', create: '建立 PDF', selected: '已選擇', emptyPages: '上傳的 PDF 頁面會顯示在這裡。', emptySelection: '選取的頁面會依序顯示在這裡。', choose: '選擇', summaryRequest: '請求摘要 ↗', preview: '產生的 PDF 預覽', download: '下載 ↗', language: '介面語言', intro: '上傳 PDF，選擇需要的頁面，並依照自己的順序合併成一個檔案。', summaryModes: ['整合摘要', '依 PDF 摘要', '依頁面摘要'], uploadHint: '可以一次選擇多個檔案', pagePlaceholder: '例如：1-3, 7', selectedPages: '已選頁面', pages: '頁', creating: '建立中...', privacy: '使用 AI 摘要和 OCR 時，文件會暫時傳送至 Azure AI。我同意資料處理。', encryptedTitle: '檔案密碼', encryptedHint: '檢視頁面需要輸入密碼。', cancel: '取消', confirm: '確認', dragHint: '拖曳或點擊以新增 PDF' },
+} as const
+
+const statusMessages = {
+  한국어: { consent: 'OCR 및 AI 처리를 시작하려면 데이터 처리 동의가 필요합니다.', preparing: '요약을 준비하고 있습니다...', unavailable: 'Azure AI 설정 후 선택한 언어와 방식으로 요약을 표시할 수 있습니다. PDF 생성은 계속 사용할 수 있습니다.' },
+  English: { consent: 'Consent is required before OCR and AI processing.', preparing: 'Preparing summary...', unavailable: 'Configure Azure AI to show a summary in the selected language and format. PDF creation remains available.' },
+  日本語: { consent: 'OCRとAI処理を開始するにはデータ処理への同意が必要です。', preparing: '要約を準備しています...', unavailable: 'Azure AIを設定すると選択した言語と形式で要約できます。PDF作成は引き続き利用できます。' },
+  简体中文: { consent: '开始 OCR 和 AI 处理前需要同意数据处理。', preparing: '正在准备摘要...', unavailable: '配置 Azure AI 后即可按所选语言和方式显示摘要。PDF 创建仍可使用。' },
+  繁體中文: { consent: '開始 OCR 和 AI 處理前需要同意資料處理。', preparing: '正在準備摘要...', unavailable: '設定 Azure AI 後即可依所選語言和方式顯示摘要。PDF 建立仍可使用。' },
 } as const
 
 function App() {
@@ -33,7 +42,7 @@ function App() {
   const [resultUrl, setResultUrl] = useState('')
   const [pageQuery, setPageQuery] = useState('')
   const [draggedId, setDraggedId] = useState('')
-  const [notice, setNotice] = useState('PDF를 올리면 페이지를 골라 바로 재구성할 수 있습니다.')
+  const [notice, setNotice] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [aiConsent, setAiConsent] = useState(false)
   const [passwordFile, setPasswordFile] = useState<File | null>(null)
@@ -55,7 +64,7 @@ function App() {
       } catch {
         encrypted = true
         setPasswordFile(file)
-        setNotice(`${file.name}은(는) 암호화되어 있습니다. 파일 비밀번호를 입력해 주세요.`)
+        setNotice(`${file.name}: ${copy.encryptedHint}`)
         continue
       }
       const previewDocument = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise
@@ -81,7 +90,7 @@ function App() {
       })
     }
     setPages((current) => [...current, ...imported])
-    setNotice(`${files.length}개 PDF에서 ${imported.length}개 페이지를 불러왔습니다.`)
+    setNotice(`${files.length} PDF · ${imported.length} ${copy.pages}`)
     event.target.value = ''
   }
 
@@ -101,11 +110,11 @@ function App() {
       }))
       setPages((current) => [...current, ...imported])
       imported.forEach((item) => void renderPreview(passwordFile, item.pageNumber, password))
-      setNotice(`${passwordFile.name}의 암호를 확인했습니다.`)
+      setNotice(`${passwordFile.name}: ${copy.confirm}`)
       setPasswordFile(null)
       setPassword('')
     } catch {
-      setNotice('비밀번호가 올바르지 않습니다. 다시 입력해 주세요.')
+      setNotice(copy.encryptedHint)
     }
   }
 
@@ -166,7 +175,7 @@ function App() {
 
   async function generatePdf() {
     if (!selectedPages.length) {
-      setNotice('먼저 PDF 페이지를 하나 이상 선택해 주세요.')
+      setNotice(copy.emptySelection)
       return
     }
     setIsGenerating(true)
@@ -196,9 +205,9 @@ function App() {
       const blob = new Blob([await output.save()], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       setResultUrl((current) => { if (current) URL.revokeObjectURL(current); return url })
-      setNotice(`${selectedPages.length}개 페이지로 PDF를 생성했습니다.`)
+      setNotice(`${selectedPages.length} ${copy.pages}`)
     } catch {
-      setNotice('PDF를 생성하지 못했습니다. 암호화된 파일의 비밀번호를 확인해 주세요.')
+      setNotice(copy.encryptedHint)
     } finally {
       setIsGenerating(false)
     }
@@ -214,14 +223,14 @@ function App() {
 
   async function requestSummary() {
     if (!selectedPages.length) {
-      setNotice('요약할 페이지를 먼저 선택해 주세요.')
+      setNotice(copy.emptySelection)
       return
     }
     if (!aiConsent) {
-      setNotice('OCR 및 AI 처리를 시작하려면 데이터 처리 동의가 필요합니다.')
+      setNotice(statusMessages[language as keyof typeof statusMessages].consent)
       return
     }
-    setSummary('요약을 준비하고 있습니다...')
+    setSummary(statusMessages[language as keyof typeof statusMessages].preparing)
     try {
       const summaryDocument = await PDFDocument.create()
       const buffers = new Map<File, ArrayBuffer>()
@@ -255,7 +264,7 @@ function App() {
       const result = await response.json() as { summary: string }
       setSummary(result.summary)
     } catch {
-      setSummary('Azure AI 설정 후 선택한 언어와 방식으로 요약을 표시할 수 있습니다. PDF 생성은 계속 사용할 수 있습니다.')
+      setSummary(statusMessages[language as keyof typeof statusMessages].unavailable)
     }
   }
 
@@ -265,7 +274,7 @@ function App() {
         <a className="brand" href="/">re<span>page</span></a>
         <div className="topbar-actions">
           <label className="language-label" htmlFor="language">{copy.language}</label>
-          <select id="language" value={language} onChange={(event) => setLanguage(event.target.value)}>
+          <select id="language" value={language} onChange={(event) => { const nextLanguage = event.target.value as keyof typeof translations; setLanguage(nextLanguage); setSummaryMode(translations[nextLanguage].summaryModes[0]) }}>
             {languages.map((item) => <option key={item}>{item}</option>)}
           </select>
         </div>
@@ -286,14 +295,14 @@ function App() {
           <label className="dropzone">
             <input type="file" accept="application/pdf" multiple onChange={handleFiles} />
             <span className="upload-icon">↑</span>
-            <strong>PDF 파일을 드래그하거나 클릭</strong>
-            <small>여러 파일을 한 번에 선택할 수 있어요</small>
+            <strong>{copy.dragHint}</strong>
+            <small>{copy.uploadHint}</small>
           </label>
           <p className="notice">{notice}</p>
         </div>
 
         <div className="pages-panel">
-          <div className="section-heading"><span className="step">02</span><h2>{copy.select}</h2><div className="page-query"><input value={pageQuery} onChange={(event) => setPageQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') selectPageNumbers() }} placeholder="예: 1-3, 7" aria-label="페이지 번호 선택" /><button onClick={selectPageNumbers}>{copy.choose}</button></div><span className="count">{selectedPages.length} {copy.selected}</span></div>
+          <div className="section-heading"><span className="step">02</span><h2>{copy.select}</h2><div className="page-query"><input value={pageQuery} onChange={(event) => setPageQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') selectPageNumbers() }} placeholder={copy.pagePlaceholder} aria-label={copy.select} /><button onClick={selectPageNumbers}>{copy.choose}</button></div><span className="count">{selectedPages.length} {copy.selected}</span></div>
           {!pages.length ? <div className="empty-state">{copy.emptyPages}</div> : <div className="page-grid">
             {pages.map((page, index) => <button className={`page-card ${selectedIds.includes(page.id) ? 'selected' : ''}`} key={page.id} onClick={() => togglePage(page.id)}>
               <span className="page-number">{String(index + 1).padStart(2, '0')}</span>
@@ -308,7 +317,7 @@ function App() {
           {!selectedPages.length ? <div className="empty-state compact">{copy.emptySelection}</div> : <div className="selection-list">
             {selectedPages.map((page, index) => <div className="selection-row" key={page.id} draggable onDragStart={() => setDraggedId(page.id)} onDragOver={(event) => event.preventDefault()} onDrop={() => dropPage(page.id)}>
               <span className="order">{String(index + 1).padStart(2, '0')}</span><span className="row-name">{page.fileName} · p.{page.pageNumber}</span>
-              <button title="왼쪽으로 이동" onClick={() => movePage(page.id, -1)}>←</button><button title="오른쪽으로 이동" onClick={() => movePage(page.id, 1)}>→</button><button title="페이지 90도 회전" onClick={() => rotatePage(page.id)}>↻</button>
+              <button title="Move left" onClick={() => movePage(page.id, -1)}>←</button><button title="Move right" onClick={() => movePage(page.id, 1)}>→</button><button title="Rotate page" onClick={() => rotatePage(page.id)}>↻</button>
             </div>)}
           </div>}
         </div>
@@ -319,12 +328,12 @@ function App() {
           <div className="section-heading"><span className="step">04</span><h2>{copy.summary} <small>{copy.optional}</small></h2></div>
           <div className="controls-row"><select value={summaryMode} onChange={(event) => setSummaryMode(event.target.value)}>{copy.summaryModes.map((item) => <option key={item}>{item}</option>)}</select><select value={summaryLanguage} onChange={(event) => setSummaryLanguage(event.target.value)}>{languages.map((item) => <option key={item}>{item}</option>)}</select><button className="text-button" onClick={requestSummary}>{copy.summaryRequest}</button></div>
           {summary && <div className="summary-result">{summary}</div>}
-          <label className="consent-row"><input type="checkbox" checked={aiConsent} onChange={(event) => setAiConsent(event.target.checked)} /> AI 요약과 OCR을 사용하면 문서가 Azure AI로 임시 전송됩니다. 데이터 처리에 동의합니다.</label>
+          <label className="consent-row"><input type="checkbox" checked={aiConsent} onChange={(event) => setAiConsent(event.target.checked)} /> {copy.privacy}</label>
         </div>
-        <div className="generate-panel"><p>선택한 페이지</p><strong>{selectedPages.length}<small> pages</small></strong><button className="generate-button" onClick={generatePdf} disabled={isGenerating}>{isGenerating ? '생성 중...' : copy.create} <span>↗</span></button></div>
+        <div className="generate-panel"><p>{copy.selectedPages}</p><strong>{selectedPages.length}<small> {copy.pages}</small></strong><button className="generate-button" onClick={generatePdf} disabled={isGenerating}>{isGenerating ? copy.creating : copy.create} <span>↗</span></button></div>
       </section>
       {resultUrl && <section className="result-panel"><div className="section-heading"><span className="step">05</span><h2>{copy.preview}</h2><button className="text-button" onClick={downloadResult}>{copy.download}</button></div><iframe title={copy.preview} src={resultUrl} /></section>}
-      {passwordFile && <div className="modal-backdrop"><div className="password-dialog"><p className="eyebrow">ENCRYPTED PDF</p><h2>파일 비밀번호</h2><p>{passwordFile.name}의 페이지를 확인하려면 비밀번호가 필요합니다.</p><input autoFocus type="password" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void unlockFile() }} /><div><button className="text-button" onClick={() => { setPasswordFile(null); setPassword('') }}>취소</button><button className="generate-button" onClick={() => void unlockFile()}>확인</button></div></div></div>}
+      {passwordFile && <div className="modal-backdrop"><div className="password-dialog"><p className="eyebrow">ENCRYPTED PDF</p><h2>{copy.encryptedTitle}</h2><p>{passwordFile.name}<br />{copy.encryptedHint}</p><input autoFocus type="password" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void unlockFile() }} /><div><button className="text-button" onClick={() => { setPasswordFile(null); setPassword('') }}>{copy.cancel}</button><button className="generate-button" onClick={() => void unlockFile()}>{copy.confirm}</button></div></div></div>}
     </main>
   )
 }
