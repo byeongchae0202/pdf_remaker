@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.47.16.16243",
-      "templateHash": "14193235421454917422"
+      "templateHash": "12658340388629089013"
     }
   },
   "parameters": {
@@ -20,27 +20,12 @@
     "staticSiteSku": {
       "type": "string",
       "defaultValue": "Free"
-    },
-    "openAiDeploymentName": {
-      "type": "string",
-      "defaultValue": "summary-model"
-    },
-    "openAiModelName": {
-      "type": "string",
-      "defaultValue": "gpt-4o-mini"
-    },
-    "openAiModelVersion": {
-      "type": "string",
-      "defaultValue": "2024-07-18"
     }
   },
   "variables": {
     "suffix": "[uniqueString(resourceGroup().id)]",
     "storageName": "[toLower(replace(format('{0}{1}', parameters('appName'), variables('suffix')), '-', ''))]",
-    "functionName": "[format('{0}-api-{1}', parameters('appName'), variables('suffix'))]",
-    "staticSiteName": "[format('{0}-web-{1}', parameters('appName'), variables('suffix'))]",
-    "documentIntelligenceName": "[format('{0}-doc-{1}', parameters('appName'), variables('suffix'))]",
-    "openAiName": "[format('{0}-ai-{1}', parameters('appName'), variables('suffix'))]"
+    "staticSiteName": "[format('{0}-web-{1}', parameters('appName'), variables('suffix'))]"
   },
   "resources": [
     {
@@ -115,120 +100,6 @@
       ]
     },
     {
-      "type": "Microsoft.CognitiveServices/accounts",
-      "apiVersion": "2023-05-01",
-      "name": "[variables('documentIntelligenceName')]",
-      "location": "[parameters('location')]",
-      "kind": "FormRecognizer",
-      "sku": {
-        "name": "S0"
-      },
-      "properties": {
-        "customSubDomainName": "[variables('documentIntelligenceName')]",
-        "publicNetworkAccess": "Enabled"
-      }
-    },
-    {
-      "type": "Microsoft.CognitiveServices/accounts",
-      "apiVersion": "2023-05-01",
-      "name": "[variables('openAiName')]",
-      "location": "[parameters('location')]",
-      "kind": "OpenAI",
-      "sku": {
-        "name": "S0"
-      },
-      "properties": {
-        "customSubDomainName": "[variables('openAiName')]",
-        "publicNetworkAccess": "Enabled"
-      }
-    },
-    {
-      "type": "Microsoft.CognitiveServices/accounts/deployments",
-      "apiVersion": "2023-05-01",
-      "name": "[format('{0}/{1}', variables('openAiName'), parameters('openAiDeploymentName'))]",
-      "sku": {
-        "name": "Standard",
-        "capacity": 1
-      },
-      "properties": {
-        "model": {
-          "format": "OpenAI",
-          "name": "[parameters('openAiModelName')]",
-          "version": "[parameters('openAiModelVersion')]"
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiName'))]"
-      ]
-    },
-    {
-      "type": "Microsoft.Web/serverfarms",
-      "apiVersion": "2022-03-01",
-      "name": "[format('{0}-plan', variables('functionName'))]",
-      "location": "[parameters('location')]",
-      "kind": "functionapp",
-      "sku": {
-        "name": "Y1",
-        "tier": "Dynamic"
-      },
-      "properties": {
-        "reserved": true
-      }
-    },
-    {
-      "type": "Microsoft.Web/sites",
-      "apiVersion": "2022-03-01",
-      "name": "[variables('functionName')]",
-      "location": "[parameters('location')]",
-      "kind": "functionapp,linux",
-      "identity": {
-        "type": "SystemAssigned"
-      },
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('{0}-plan', variables('functionName')))]",
-        "httpsOnly": true,
-        "siteConfig": {
-          "linuxFxVersion": "Node|20",
-          "appSettings": [
-            {
-              "name": "FUNCTIONS_WORKER_RUNTIME",
-              "value": "node"
-            },
-            {
-              "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "~4"
-            },
-            {
-              "name": "WEBSITE_NODE_DEFAULT_VERSION",
-              "value": "~20"
-            },
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}', variables('storageName'), listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2023-05-01').keys[0].value, environment().suffixes.storage)]"
-            },
-            {
-              "name": "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT",
-              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('documentIntelligenceName')), '2023-05-01').endpoint]"
-            },
-            {
-              "name": "AZURE_OPENAI_ENDPOINT",
-              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiName')), '2023-05-01').endpoint]"
-            },
-            {
-              "name": "AZURE_OPENAI_DEPLOYMENT",
-              "value": "[parameters('openAiDeploymentName')]"
-            }
-          ]
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.CognitiveServices/accounts', variables('documentIntelligenceName'))]",
-        "[resourceId('Microsoft.Web/serverfarms', format('{0}-plan', variables('functionName')))]",
-        "[resourceId('Microsoft.CognitiveServices/accounts', variables('openAiName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
-      ]
-    },
-    {
       "type": "Microsoft.Web/staticSites",
       "apiVersion": "2022-09-01",
       "name": "[variables('staticSiteName')]",
@@ -239,19 +110,6 @@
       "properties": {
         "stagingEnvironmentPolicy": "Enabled"
       }
-    },
-    {
-      "type": "Microsoft.Web/staticSites/linkedBackends",
-      "apiVersion": "2022-09-01",
-      "name": "[format('{0}/{1}', variables('staticSiteName'), 'default')]",
-      "properties": {
-        "backendResourceId": "[resourceId('Microsoft.Web/sites', variables('functionName'))]",
-        "region": "[parameters('location')]"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', variables('functionName'))]",
-        "[resourceId('Microsoft.Web/staticSites', variables('staticSiteName'))]"
-      ]
     }
   ],
   "outputs": {
@@ -259,21 +117,9 @@
       "type": "string",
       "value": "[variables('staticSiteName')]"
     },
-    "functionAppName": {
-      "type": "string",
-      "value": "[variables('functionName')]"
-    },
     "storageAccountName": {
       "type": "string",
       "value": "[variables('storageName')]"
-    },
-    "documentIntelligenceEndpoint": {
-      "type": "string",
-      "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('documentIntelligenceName')), '2023-05-01').endpoint]"
-    },
-    "openAiEndpoint": {
-      "type": "string",
-      "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('openAiName')), '2023-05-01').endpoint]"
     }
   }
 }

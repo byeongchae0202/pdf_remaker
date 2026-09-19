@@ -4,9 +4,6 @@
   "parameters": {
     "location": { "value": "koreacentral" },
     "appName": { "value": "pdf-remaker" },
-    "staticSiteSku": { "value": "Free" },
-    "openAiDeploymentName": { "value": "summary-model" },
-    "openAiModelName": { "value": "gpt-4o-mini" },
-    "openAiModelVersion": { "value": "2024-07-18" }
+    "staticSiteSku": { "value": "Free" }
   }
 }

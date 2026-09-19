@@ -6,10 +6,6 @@ services:
     project: .
     language: js
     host: staticwebapp
-  api:
-    project: ./api
-    language: js
-    host: function
 infra:
   provider: bicep
   path: infra
