@@ -11,9 +11,17 @@ type PageItem = {
   pageNumber: number
   rotation: number
   previewUrl: string
+  encrypted: boolean
+  password?: string
 }
 
 const languages = ['한국어', 'English', '日本語', '简体中文']
+const translations = {
+  한국어: { upload: 'PDF를 올려주세요', select: '페이지를 선택하세요', order: '순서를 다듬으세요', summary: 'AI 요약', optional: '선택사항', create: 'PDF 만들기', selected: 'selected', emptyPages: '업로드한 PDF의 페이지가 여기에 표시됩니다.', emptySelection: '선택한 페이지가 이곳에 순서대로 쌓입니다.', choose: '선택', summaryRequest: '요약 요청 ↗', preview: '완성된 PDF 미리보기', download: '다운로드 ↗', language: '화면 언어', intro: '여러 PDF를 한곳에 올리고, 페이지를 골라 나만의 한 파일로 다시 엮어보세요.', summaryModes: ['통합 요약', 'PDF별 요약', '페이지별 요약'] },
+  English: { upload: 'Upload your PDFs', select: 'Select your pages', order: 'Arrange your selection', summary: 'AI summary', optional: 'Optional', create: 'Create PDF', selected: 'selected', emptyPages: 'Pages from your uploaded PDFs will appear here.', emptySelection: 'Selected pages will stack here in order.', choose: 'Select', summaryRequest: 'Request summary ↗', preview: 'Finished PDF preview', download: 'Download ↗', language: 'Display language', intro: 'Bring your PDFs together, choose the pages you need, and make one file in your own order.', summaryModes: ['Combined summary', 'Summary by PDF', 'Summary by page'] },
+  日本語: { upload: 'PDFをアップロード', select: 'ページを選択', order: '順番を整える', summary: 'AI要約', optional: '任意', create: 'PDFを作成', selected: 'selected', emptyPages: 'アップロードしたPDFのページがここに表示されます。', emptySelection: '選択したページが順番に表示されます。', choose: '選択', summaryRequest: '要約を依頼 ↗', preview: '完成したPDFのプレビュー', download: 'ダウンロード ↗', language: '表示言語', intro: 'PDFをまとめ、必要なページを選び、好きな順番で一つのファイルにします。', summaryModes: ['統合要約', 'PDF別要約', 'ページ別要約'] },
+  简体中文: { upload: '上传 PDF', select: '选择页面', order: '调整顺序', summary: 'AI 摘要', optional: '可选', create: '创建 PDF', selected: 'selected', emptyPages: '上传的 PDF 页面会显示在这里。', emptySelection: '选中的页面会按顺序显示在这里。', choose: '选择', summaryRequest: '请求摘要 ↗', preview: '生成的 PDF 预览', download: '下载 ↗', language: '界面语言', intro: '上传 PDF，选择需要的页面，并按自己的顺序合并为一个文件。', summaryModes: ['综合摘要', '按 PDF 摘要', '按页面摘要'] },
+} as const
 
 function App() {
   const [pages, setPages] = useState<PageItem[]>([])
@@ -27,8 +35,12 @@ function App() {
   const [draggedId, setDraggedId] = useState('')
   const [notice, setNotice] = useState('PDF를 올리면 페이지를 골라 바로 재구성할 수 있습니다.')
   const [isGenerating, setIsGenerating] = useState(false)
+  const [aiConsent, setAiConsent] = useState(false)
+  const [passwordFile, setPasswordFile] = useState<File | null>(null)
+  const [password, setPassword] = useState('')
 
   const selectedPages = pages.filter((page) => selectedIds.includes(page.id))
+  const copy = translations[language as keyof typeof translations]
 
   async function handleFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []).filter((file) => file.type === 'application/pdf')
@@ -36,7 +48,16 @@ function App() {
 
     const imported: PageItem[] = []
     for (const file of files) {
-      const pdfDocument = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true })
+      let pdfDocument: PDFDocument | null = null
+      let encrypted = false
+      try {
+        pdfDocument = await PDFDocument.load(await file.arrayBuffer())
+      } catch {
+        encrypted = true
+        setPasswordFile(file)
+        setNotice(`${file.name}은(는) 암호화되어 있습니다. 파일 비밀번호를 입력해 주세요.`)
+        continue
+      }
       const previewDocument = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise
       pdfDocument.getPages().forEach((_, index) => {
         void previewDocument.getPage(index + 1).then(async (pdfPage) => {
@@ -55,12 +76,49 @@ function App() {
           pageNumber: index + 1,
           rotation: 0,
           previewUrl: '',
+          encrypted,
         })
       })
     }
     setPages((current) => [...current, ...imported])
     setNotice(`${files.length}개 PDF에서 ${imported.length}개 페이지를 불러왔습니다.`)
     event.target.value = ''
+  }
+
+  async function unlockFile() {
+    if (!passwordFile || !password) return
+    try {
+      const previewDocument = await pdfjsLib.getDocument({ data: await passwordFile.arrayBuffer(), password }).promise
+      const imported: PageItem[] = Array.from({ length: previewDocument.numPages }, (_, index) => ({
+        id: `${passwordFile.name}-${index}-${crypto.randomUUID()}`,
+        fileName: passwordFile.name,
+        file: passwordFile,
+        pageNumber: index + 1,
+        rotation: 0,
+        previewUrl: '',
+        encrypted: true,
+        password,
+      }))
+      setPages((current) => [...current, ...imported])
+      imported.forEach((item) => void renderPreview(passwordFile, item.pageNumber, password))
+      setNotice(`${passwordFile.name}의 암호를 확인했습니다.`)
+      setPasswordFile(null)
+      setPassword('')
+    } catch {
+      setNotice('비밀번호가 올바르지 않습니다. 다시 입력해 주세요.')
+    }
+  }
+
+  async function renderPreview(file: File, pageNumber: number, filePassword?: string) {
+    const previewDocument = await pdfjsLib.getDocument({ data: await file.arrayBuffer(), password: filePassword }).promise
+    const pdfPage = await previewDocument.getPage(pageNumber)
+    const viewport = pdfPage.getViewport({ scale: 0.35 })
+    const canvas = document.createElement('canvas')
+    canvas.width = viewport.width
+    canvas.height = viewport.height
+    await pdfPage.render({ canvasContext: canvas.getContext('2d')!, viewport }).promise
+    const previewUrl = canvas.toDataURL('image/jpeg', 0.8)
+    setPages((current) => current.map((item) => item.file === file && item.pageNumber === pageNumber ? { ...item, previewUrl } : item))
   }
 
   function togglePage(id: string) {
@@ -116,8 +174,21 @@ function App() {
       const output = await PDFDocument.create()
       const buffers = new Map<File, ArrayBuffer>()
       for (const item of selectedPages) {
+        if (item.encrypted) {
+          const previewDocument = await pdfjsLib.getDocument({ data: await item.file.arrayBuffer(), password: item.password }).promise
+          const pdfPage = await previewDocument.getPage(item.pageNumber)
+          const viewport = pdfPage.getViewport({ scale: 1.5 })
+          const canvas = document.createElement('canvas')
+          canvas.width = viewport.width
+          canvas.height = viewport.height
+          await pdfPage.render({ canvasContext: canvas.getContext('2d')!, viewport }).promise
+          const image = await output.embedJpg(canvas.toDataURL('image/jpeg', 0.92))
+          const outputPage = output.addPage([viewport.width / 1.5, viewport.height / 1.5])
+          outputPage.drawImage(image, { x: 0, y: 0, width: outputPage.getWidth(), height: outputPage.getHeight(), rotate: degrees(item.rotation) })
+          continue
+        }
         if (!buffers.has(item.file)) buffers.set(item.file, await item.file.arrayBuffer())
-        const source = await PDFDocument.load(buffers.get(item.file)!, { ignoreEncryption: true })
+        const source = await PDFDocument.load(buffers.get(item.file)!)
         const [copied] = await output.copyPages(source, [item.pageNumber - 1])
         copied.setRotation(degrees(item.rotation))
         output.addPage(copied)
@@ -144,6 +215,10 @@ function App() {
   async function requestSummary() {
     if (!selectedPages.length) {
       setNotice('요약할 페이지를 먼저 선택해 주세요.')
+      return
+    }
+    if (!aiConsent) {
+      setNotice('OCR 및 AI 처리를 시작하려면 데이터 처리 동의가 필요합니다.')
       return
     }
     setSummary('요약을 준비하고 있습니다...')
@@ -176,7 +251,7 @@ function App() {
       <header className="topbar">
         <a className="brand" href="/">re<span>page</span></a>
         <div className="topbar-actions">
-          <label className="language-label" htmlFor="language">화면 언어</label>
+          <label className="language-label" htmlFor="language">{copy.language}</label>
           <select id="language" value={language} onChange={(event) => setLanguage(event.target.value)}>
             {languages.map((item) => <option key={item}>{item}</option>)}
           </select>
@@ -187,14 +262,14 @@ function App() {
         <div>
           <p className="eyebrow">PDF PAGE REMIXER / 01</p>
           <h1>필요한 페이지만,<br /><em>새로운 순서로.</em></h1>
-          <p className="intro">여러 PDF를 한곳에 올리고, 페이지를 골라 나만의 한 파일로 다시 엮어보세요.</p>
+          <p className="intro">{copy.intro}</p>
         </div>
         <div className="hero-mark" aria-hidden="true"><span>+</span><span>↗</span><span>□</span></div>
       </section>
 
       <section className="workspace">
         <div className="upload-panel">
-          <div className="section-heading"><span className="step">01</span><h2>PDF를 올려주세요</h2></div>
+          <div className="section-heading"><span className="step">01</span><h2>{copy.upload}</h2></div>
           <label className="dropzone">
             <input type="file" accept="application/pdf" multiple onChange={handleFiles} />
             <span className="upload-icon">↑</span>
@@ -205,8 +280,8 @@ function App() {
         </div>
 
         <div className="pages-panel">
-          <div className="section-heading"><span className="step">02</span><h2>페이지를 선택하세요</h2><div className="page-query"><input value={pageQuery} onChange={(event) => setPageQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') selectPageNumbers() }} placeholder="예: 1-3, 7" aria-label="페이지 번호 선택" /><button onClick={selectPageNumbers}>선택</button></div><span className="count">{selectedPages.length} selected</span></div>
-          {!pages.length ? <div className="empty-state">업로드한 PDF의 페이지가 여기에 표시됩니다.</div> : <div className="page-grid">
+          <div className="section-heading"><span className="step">02</span><h2>{copy.select}</h2><div className="page-query"><input value={pageQuery} onChange={(event) => setPageQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') selectPageNumbers() }} placeholder="예: 1-3, 7" aria-label="페이지 번호 선택" /><button onClick={selectPageNumbers}>{copy.choose}</button></div><span className="count">{selectedPages.length} {copy.selected}</span></div>
+          {!pages.length ? <div className="empty-state">{copy.emptyPages}</div> : <div className="page-grid">
             {pages.map((page, index) => <button className={`page-card ${selectedIds.includes(page.id) ? 'selected' : ''}`} key={page.id} onClick={() => togglePage(page.id)}>
               <span className="page-number">{String(index + 1).padStart(2, '0')}</span>
               <div className="page-sheet">{page.previewUrl ? <img src={page.previewUrl} alt={`${page.fileName} ${page.pageNumber}페이지 미리보기`} /> : <><span>{page.fileName.slice(0, 18)}</span><i>{page.pageNumber}</i><b /></>}</div>
@@ -216,8 +291,8 @@ function App() {
         </div>
 
         <div className="selection-panel">
-          <div className="section-heading"><span className="step">03</span><h2>순서를 다듬으세요</h2></div>
-          {!selectedPages.length ? <div className="empty-state compact">선택한 페이지가 이곳에 순서대로 쌓입니다.</div> : <div className="selection-list">
+          <div className="section-heading"><span className="step">03</span><h2>{copy.order}</h2></div>
+          {!selectedPages.length ? <div className="empty-state compact">{copy.emptySelection}</div> : <div className="selection-list">
             {selectedPages.map((page, index) => <div className="selection-row" key={page.id} draggable onDragStart={() => setDraggedId(page.id)} onDragOver={(event) => event.preventDefault()} onDrop={() => dropPage(page.id)}>
               <span className="order">{String(index + 1).padStart(2, '0')}</span><span className="row-name">{page.fileName} · p.{page.pageNumber}</span>
               <button title="왼쪽으로 이동" onClick={() => movePage(page.id, -1)}>←</button><button title="오른쪽으로 이동" onClick={() => movePage(page.id, 1)}>→</button><button title="페이지 90도 회전" onClick={() => rotatePage(page.id)}>↻</button>
@@ -228,14 +303,15 @@ function App() {
 
       <section className="bottom-grid">
         <div className="summary-panel">
-          <div className="section-heading"><span className="step">04</span><h2>AI 요약 <small>선택사항</small></h2></div>
-          <div className="controls-row"><select value={summaryMode} onChange={(event) => setSummaryMode(event.target.value)}><option>통합 요약</option><option>PDF별 요약</option><option>페이지별 요약</option></select><select value={summaryLanguage} onChange={(event) => setSummaryLanguage(event.target.value)}>{languages.map((item) => <option key={item}>{item}</option>)}</select><button className="text-button" onClick={requestSummary}>요약 요청 ↗</button></div>
+          <div className="section-heading"><span className="step">04</span><h2>{copy.summary} <small>{copy.optional}</small></h2></div>
+          <div className="controls-row"><select value={summaryMode} onChange={(event) => setSummaryMode(event.target.value)}>{copy.summaryModes.map((item) => <option key={item}>{item}</option>)}</select><select value={summaryLanguage} onChange={(event) => setSummaryLanguage(event.target.value)}>{languages.map((item) => <option key={item}>{item}</option>)}</select><button className="text-button" onClick={requestSummary}>{copy.summaryRequest}</button></div>
           {summary && <div className="summary-result">{summary}</div>}
-          <p className="privacy-note">AI 요약과 OCR을 사용하면 문서가 Azure AI로 임시 전송됩니다. 계속하기 전에 데이터 처리에 동의한 것으로 봅니다.</p>
+          <label className="consent-row"><input type="checkbox" checked={aiConsent} onChange={(event) => setAiConsent(event.target.checked)} /> AI 요약과 OCR을 사용하면 문서가 Azure AI로 임시 전송됩니다. 데이터 처리에 동의합니다.</label>
         </div>
-        <div className="generate-panel"><p>선택한 페이지</p><strong>{selectedPages.length}<small> pages</small></strong><button className="generate-button" onClick={generatePdf} disabled={isGenerating}>{isGenerating ? '생성 중...' : 'PDF 만들기'} <span>↗</span></button></div>
+        <div className="generate-panel"><p>선택한 페이지</p><strong>{selectedPages.length}<small> pages</small></strong><button className="generate-button" onClick={generatePdf} disabled={isGenerating}>{isGenerating ? '생성 중...' : copy.create} <span>↗</span></button></div>
       </section>
-      {resultUrl && <section className="result-panel"><div className="section-heading"><span className="step">05</span><h2>완성된 PDF 미리보기</h2><button className="text-button" onClick={downloadResult}>다운로드 ↗</button></div><iframe title="생성된 PDF 미리보기" src={resultUrl} /></section>}
+      {resultUrl && <section className="result-panel"><div className="section-heading"><span className="step">05</span><h2>{copy.preview}</h2><button className="text-button" onClick={downloadResult}>{copy.download}</button></div><iframe title={copy.preview} src={resultUrl} /></section>}
+      {passwordFile && <div className="modal-backdrop"><div className="password-dialog"><p className="eyebrow">ENCRYPTED PDF</p><h2>파일 비밀번호</h2><p>{passwordFile.name}의 페이지를 확인하려면 비밀번호가 필요합니다.</p><input autoFocus type="password" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void unlockFile() }} /><div><button className="text-button" onClick={() => { setPasswordFile(null); setPassword('') }}>취소</button><button className="generate-button" onClick={() => void unlockFile()}>확인</button></div></div></div>}
     </main>
   )
 }
