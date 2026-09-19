@@ -1,0 +1,15 @@
+name: pdf-remaker
+metadata:
+  template: pdf-remaker@0.1.0
+services:
+  web:
+    project: .
+    language: js
+    host: staticwebapp
+  api:
+    project: ./api
+    language: js
+    host: function
+infra:
+  provider: bicep
+  path: infra

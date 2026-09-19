@@ -226,8 +226,21 @@ function App() {
       const summaryDocument = await PDFDocument.create()
       const buffers = new Map<File, ArrayBuffer>()
       for (const item of selectedPages) {
+        if (item.encrypted) {
+          const previewDocument = await pdfjsLib.getDocument({ data: await item.file.arrayBuffer(), password: item.password }).promise
+          const pdfPage = await previewDocument.getPage(item.pageNumber)
+          const viewport = pdfPage.getViewport({ scale: 1.5 })
+          const canvas = document.createElement('canvas')
+          canvas.width = viewport.width
+          canvas.height = viewport.height
+          await pdfPage.render({ canvasContext: canvas.getContext('2d')!, viewport }).promise
+          const image = await summaryDocument.embedJpg(canvas.toDataURL('image/jpeg', 0.92))
+          const summaryPage = summaryDocument.addPage([viewport.width / 1.5, viewport.height / 1.5])
+          summaryPage.drawImage(image, { x: 0, y: 0, width: summaryPage.getWidth(), height: summaryPage.getHeight() })
+          continue
+        }
         if (!buffers.has(item.file)) buffers.set(item.file, await item.file.arrayBuffer())
-        const source = await PDFDocument.load(buffers.get(item.file)!, { ignoreEncryption: true })
+        const source = await PDFDocument.load(buffers.get(item.file)!)
         const [copied] = await summaryDocument.copyPages(source, [item.pageNumber - 1])
         copied.setRotation(degrees(item.rotation))
         summaryDocument.addPage(copied)
