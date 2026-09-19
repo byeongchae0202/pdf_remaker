@@ -324,7 +324,7 @@ function App() {
           <div className="section-heading"><span className="step">03</span><h2>{copy.order}</h2></div>
           {!selectedPages.length ? <div className="empty-state compact">{copy.emptySelection}</div> : <div className="selection-list">
             {selectedPages.map((page, index) => <div className="selection-row" key={page.id} draggable onDragStart={() => setDraggedId(page.id)} onDragOver={(event) => event.preventDefault()} onDrop={() => dropPage(page.id)}>
-              <span className="order">{String(index + 1).padStart(2, '0')}</span><span className="row-name">{page.fileName} · p.{page.pageNumber}</span>
+              <span className="drag-handle" title="드래그해서 순서 변경" aria-label="드래그해서 순서 변경">⠿</span><span className="order">{String(index + 1).padStart(2, '0')}</span><span className="row-name">{page.fileName} · p.{page.pageNumber}</span>
               <button title="Move left" onClick={() => movePage(page.id, -1)}>←</button><button title="Move right" onClick={() => movePage(page.id, 1)}>→</button><button title="Rotate page" onClick={() => rotatePage(page.id)}>↻</button>
             </div>)}
           </div>}
