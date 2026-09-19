@@ -32,6 +32,14 @@ const statusMessages = {
   繁體中文: { consent: '開始 OCR 和 AI 處理前需要同意資料處理。', preparing: '正在準備摘要...', unavailable: '設定 Azure AI 後即可依所選語言和方式顯示摘要。PDF 建立仍可使用。' },
 } as const
 
+const heroTitles = {
+  한국어: ['필요한 페이지만,', '새로운 순서로.'],
+  English: ['Only the pages you need,', 'in a new order.'],
+  日本語: ['必要なページだけを、', '新しい順番で。'],
+  简体中文: ['只保留需要的页面，', '按全新顺序排列。'],
+  繁體中文: ['只保留需要的頁面，', '依全新順序排列。'],
+} as const
+
 function App() {
   const [pages, setPages] = useState<PageItem[]>([])
   const [selectedIds, setSelectedIds] = useState<string[]>([])
@@ -283,7 +291,7 @@ function App() {
       <section className="hero">
         <div>
           <p className="eyebrow">PDF PAGE REMIXER / 01</p>
-          <h1>필요한 페이지만,<br /><em>새로운 순서로.</em></h1>
+          <h1>{heroTitles[language as keyof typeof heroTitles][0]}<br /><em>{heroTitles[language as keyof typeof heroTitles][1]}</em></h1>
           <p className="intro">{copy.intro}</p>
         </div>
         <div className="hero-mark" aria-hidden="true"><span>+</span><span>↗</span><span>□</span></div>
