@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft
+In Progress
 
 ## Problem
 
@@ -175,4 +175,24 @@ Draft
 
 ## Implementation Notes
 
-구현 전 기술 검토와 Azure 서비스 가용성 확인 결과를 기록한다.
+현재 구현된 범위:
+
+- React + Vite 기반 웹앱 초기 구조
+- 브라우저에서 PDF 여러 개 업로드 및 페이지 수집
+- PDF.js 기반 페이지 썸네일 표시
+- 썸네일 클릭 및 페이지 번호 입력을 통한 선택
+- 선택 페이지의 이동 버튼 및 드래그 앤 드롭 순서 변경
+- 선택 페이지별 90도 회전
+- pdf-lib 기반 PDF 생성
+- 생성 PDF 미리보기 및 다운로드
+- Azure Functions 기반 Azure OpenAI 요약 API 연결 지점
+- Azure Document Intelligence OCR 결과를 Azure OpenAI 요약에 전달하는 API 경로
+- Azure Static Web Apps 설정 파일과 비용 최소화 방향의 개발 문서
+
+아직 구현하지 않은 범위:
+
+- 암호화 PDF의 파일별 비밀번호 입력과 복호화 후 병합
+- 암호화 PDF의 파일별 비밀번호 입력과 복호화 후 병합
+- 웹앱 전체 문구의 다국어 번역
+- 처리 완료 후 서버 측 임시 파일 삭제 워크플로
+- 실제 Azure 리소스 생성 및 배포
